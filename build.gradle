@@ -1,0 +1,56 @@
+group 'com.seleniumtestcucumber.mytest'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    compile 'org.seleniumhq.selenium:selenium-server:2.44.0'
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.4.0'
+    compile 'org.testng:testng:6.1.1'
+    // https://mvnrepository.com/artifact/info.cukes/cucumber-testng
+    compile group: 'info.cukes', name: 'cucumber-testng', version: '1.2.5'
+    // https://mvnrepository.com/artifact/org.assertj/assertj-core
+    compile group: 'org.assertj', name: 'assertj-core', version: '3.6.2'
+    // https://mvnrepository.com/artifact/info.cukes/cucumber-java
+    testCompile 'info.cukes:cucumber-java:1.2.5'
+    testCompile 'info.cukes:cucumber-junit:1.2.5'
+    testCompile 'junit:junit:4.12'
+}
+
+test {
+    reports.junitXml.enabled = false
+    reports.html.enabled = false
+    testLogging.showStandardStreams = true
+    systemProperties System.getProperties()
+}
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testRuntime
+    }
+}
+
+/**
+ * Runs a single feature file using -PfeatureFile parameter, i.e:
+ * gradlew cucumber -PfeatureFile=lufthansa_api_cucumber_test/authentication-API/AuthenticationViaAPI.feature
+ */
+task cucumber() {
+    dependsOn build
+    javaexec {
+        main = "cucumber.api.cli.Main"
+        classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+        args = ['--plugin', 'html:AcceptanceResults',
+                '--plugin', 'pretty',
+                '--glue', 'stepDefTrivago',
+                project.hasProperty('featureFile') ? project.property("featureFile") : ""]
+    }
+}
